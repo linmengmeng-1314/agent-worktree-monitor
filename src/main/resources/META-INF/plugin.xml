@@ -1,0 +1,22 @@
+<idea-plugin>
+    <id>com.linmengmeng.worktreemonitor</id>
+    <name>Agent Worktree Monitor</name>
+    <vendor>linmengmeng</vendor>
+    <description><![CDATA[
+    多 Agent Git Worktree 代码变更监控面板:自动发现当前仓库关联的全部 Worktree,
+    统一展示各 Worktree 的分支、文件变更、增删行数,双击打开原生 Diff。
+    只读工具,不执行任何 Git 写操作。
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.linmengmeng.worktreemonitor.service.MonitorStartupActivity"/>
+        <projectService serviceImplementation="com.linmengmeng.worktreemonitor.settings.MonitorSettings"/>
+        <toolWindow id="Agent Worktree Monitor"
+                    anchor="right"
+                    factoryClass="com.linmengmeng.worktreemonitor.ui.MonitorToolWindowFactory"
+                    icon="/icons/toolWindow.svg"
+                    canCloseContents="false"/>
+    </extensions>
+</idea-plugin>

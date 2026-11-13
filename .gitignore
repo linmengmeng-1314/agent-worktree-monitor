@@ -1,0 +1,12 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.idea/
+*.iml
+.ideaPlugins/
+.kotlin/
+.intellijPlatform/
+intellij-sdk/
+local.properties
+.claude/
+/docs/
