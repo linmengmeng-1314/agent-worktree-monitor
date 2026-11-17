@@ -1,11 +1,10 @@
 <idea-plugin>
     <id>com.linmengmeng.worktreemonitor</id>
     <name>Agent Worktree Monitor</name>
-    <vendor>linmengmeng</vendor>
+    <vendor email="1632284989@qq.com" url="https://github.com/linmengmeng-1314">linmengmeng</vendor>
     <description><![CDATA[
-    多 Agent Git Worktree 代码变更监控面板:自动发现当前仓库关联的全部 Worktree,
-    统一展示各 Worktree 的分支、文件变更、增删行数,双击打开原生 Diff。
-    只读工具,不执行任何 Git 写操作。
+    <p>Monitors code changes across multiple Git worktrees for parallel AI-agent development (Claude Code, Codex, OpenCode, etc.). Automatically discovers all worktrees of the current repository, shows branches, committed and uncommitted changes with line statistics, detects files modified by multiple worktrees, and opens native IDEA diffs. Read-only and local-first: no git write operations, no network access, no telemetry.</p>
+    <p>多 Agent 并行开发的 Git Worktree 变更监控面板:自动发现当前仓库关联的全部 Worktree,统一展示各 Worktree 的分支、未提交与已提交变更、增删行数,检测跨 Worktree 的文件修改重叠,双击打开原生 Diff。只读工具:不执行任何 Git 写操作、无网络请求、无遥测。</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
