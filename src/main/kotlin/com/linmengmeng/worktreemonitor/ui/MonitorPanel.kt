@@ -94,7 +94,7 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
     private val intervalCombo = JComboBox(arrayOf(5, 10, 30, 60))
     private val statusLabel = JBLabel("未刷新")
 
-    private var refreshing = false
+    private val refreshing = java.util.concurrent.atomic.AtomicBoolean(false)
     private var lastWorktrees: List<WorktreeInfo> = emptyList()
     private var lastSignature: String? = null
     private var autoTimer: Timer? = null
@@ -176,8 +176,7 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
             statusLabel.text = "当前项目无本地目录,无法扫描"
             return
         }
-        if (refreshing) return
-        refreshing = true
+        if (!refreshing.compareAndSet(false, true)) return
         refreshButton.isEnabled = false
         if (!light) statusLabel.text = "扫描中…"
 
@@ -195,7 +194,7 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
                 thisLogger().warn("AgentWorktreeMonitor 扫描失败: ${e.message}")
                 SwingUtilities.invokeLater { statusLabel.text = "扫描失败:${e.message}" }
             } finally {
-                refreshing = false
+                refreshing.set(false)
                 SwingUtilities.invokeLater { refreshButton.isEnabled = true }
             }
         }

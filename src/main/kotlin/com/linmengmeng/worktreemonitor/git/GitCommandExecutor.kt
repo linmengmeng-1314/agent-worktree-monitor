@@ -3,6 +3,8 @@ package com.linmengmeng.worktreemonitor.git
 import com.intellij.execution.configurations.GeneralCommandLine
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 data class GitCommandResult(
     val exitCode: Int,
@@ -18,7 +20,8 @@ data class GitCommandResult(
  * 统一 Git 命令执行收口:
  * 1. 参数数组方式执行进程,不拼接 shell 字符串,杜绝命令注入;
  * 2. 只允许只读子命令(白名单),插件定位为只读监控工具;
- * 3. 必须在后台线程调用,禁止 EDT。
+ * 3. 必须在后台线程调用,禁止 EDT;
+ * 4. 超时保护:超时强杀进程防止泄漏(如 git 等待凭据输入挂死)。
  */
 class GitCommandExecutor {
 
@@ -27,6 +30,9 @@ class GitCommandExecutor {
         private val ALLOWED_SUBCOMMANDS = setOf(
             "worktree", "status", "diff", "show", "rev-parse", "merge-base", "ls-files", "log", "branch"
         )
+
+        /** 单条命令超时(毫秒) */
+        private const val TIMEOUT_MS = 15_000L
     }
 
     fun execute(workDir: Path, vararg args: String): GitCommandResult {
@@ -37,9 +43,17 @@ class GitCommandExecutor {
             .withWorkDirectory(workDir.toFile())
             .withCharset(StandardCharsets.UTF_8)
         val process = commandLine.createProcess()
-        val stdout = process.inputStream.readBytes()
-        val stderr = process.errorStream.readBytes().toString(StandardCharsets.UTF_8)
-        val exitCode = process.waitFor()
-        return GitCommandResult(exitCode, stdout, stderr)
+
+        // 输出在独立线程消费,避免大输出写满管道缓冲导致主线程等待死锁
+        val stdoutFuture = CompletableFuture.supplyAsync { process.inputStream.readBytes() }
+        val stderrFuture = CompletableFuture.supplyAsync { process.errorStream.readBytes() }
+
+        if (!process.waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            process.destroyForcibly()
+            return GitCommandResult(-1, ByteArray(0), "git 命令超时(${args.joinToString(" ")})")
+        }
+        val stdout = stdoutFuture.get(5, TimeUnit.SECONDS)
+        val stderr = String(stderrFuture.get(5, TimeUnit.SECONDS), StandardCharsets.UTF_8)
+        return GitCommandResult(process.exitValue(), stdout, stderr)
     }
 }
