@@ -15,8 +15,9 @@ dependencies {
         if (localIde != null) {
             local(localIde)
         } else {
-            // 完整 maven 坐标;intellijIdeaCommunity("2026.2.2") 在插件 2.19 下解析到废弃坐标 idea:ideaIC 会失败
-            create("com.jetbrains.intellij.idea:ideaIC:2026.2.2")
+            // 无本机 IDE 的环境(如 CI)远程下载 IU:与官方模板一致、解析可靠;
+            // intellijIdeaCommunity("2026.2.2") 在插件 2.19 下会解析到不存在的旧坐标 idea:ideaIC
+            intellijIdeaUltimate("2026.2.2")
         }
     }
 }
