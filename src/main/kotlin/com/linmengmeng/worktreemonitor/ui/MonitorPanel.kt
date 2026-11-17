@@ -44,6 +44,7 @@ import javax.swing.JSplitPane
 import javax.swing.JTable
 import javax.swing.JTabbedPane
 import javax.swing.ListCellRenderer
+import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.ListSelectionModel
 import javax.swing.SwingUtilities
 import javax.swing.Timer
@@ -105,6 +106,7 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
         worktreeList.componentPopupMenu = createBaseBranchMenu()
 
         fileTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+        fileTable.columnModel.getColumn(0).cellRenderer = FilePathCellRenderer()
         fileTable.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.clickCount == 2) openSelectedFileDiff()
@@ -112,6 +114,7 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
         })
 
         overlapTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+        overlapTable.columnModel.getColumn(0).cellRenderer = FilePathCellRenderer()
         overlapTable.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.clickCount == 2) openSelectedOverlapDiff()
@@ -384,6 +387,52 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
     }
 
     // ---------- 渲染与表格模型 ----------
+
+    /**
+     * 文件路径列渲染:文件名加粗在前,目录灰色小字缀后,悬浮显示完整相对路径;
+     * 重命名行(模型值为 "旧路径 → 新路径")显示为 "新文件名 + 目录 + ← 旧路径"。
+     */
+    private class FilePathCellRenderer : DefaultTableCellRenderer() {
+
+        override fun getTableCellRendererComponent(
+            table: JTable?,
+            value: Any?,
+            isSelected: Boolean,
+            hasFocus: Boolean,
+            row: Int,
+            column: Int
+        ): java.awt.Component {
+            val c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            val full = value?.toString().orEmpty()
+            val oldPart: String?
+            val newPath: String
+            if (full.contains(" → ")) {
+                oldPart = full.substringBefore(" → ")
+                newPath = full.substringAfter(" → ")
+            } else {
+                oldPart = null
+                newPath = full
+            }
+            val slash = newPath.lastIndexOf('/')
+            val name = if (slash >= 0) newPath.substring(slash + 1) else newPath
+            val dir = if (slash > 0) newPath.substring(0, slash) else ""
+            text = buildString {
+                append("<html><b>").append(htmlEscape(name)).append("</b>")
+                if (dir.isNotEmpty()) {
+                    append(" <font color='gray' size='-2'>").append(htmlEscape(dir)).append("</font>")
+                }
+                if (oldPart != null) {
+                    append(" <font color='gray' size='-2'>← ").append(htmlEscape(oldPart)).append("</font>")
+                }
+                append("</html>")
+            }
+            toolTipText = full
+            return c
+        }
+
+        private fun htmlEscape(s: String): String =
+            s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    }
 
     /** worktree 列表渲染:分支 + 基准 + 短 SHA/路径 + 未提交/已提交摘要 */
     private class WorktreeCellRenderer : JBLabel(), ListCellRenderer<WorktreeRow> {
