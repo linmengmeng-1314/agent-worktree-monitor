@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Plugin icon flattened to solid colors: the IDE Plugins list failed to render the gradient version and showed a placeholder
+- What's New (Marketplace / plugin details) is now populated automatically from this changelog
+
 ## 0.2.2
 
 - Marketplace readiness: English-first plugin description, vendor contact info, 40×40 plugin icon
