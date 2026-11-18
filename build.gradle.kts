@@ -29,6 +29,15 @@ intellijPlatform {
             sinceBuild = "262"
             untilBuild = provider { null }
         }
+        // What's New(Marketplace)取 CHANGELOG.md 当前版本小节,避免每次发版手改两处
+        val currentVersion = providers.gradleProperty("version").get()
+        val changelogText = providers.fileContents(layout.projectDirectory.file("CHANGELOG.md")).asText
+        changeNotes = changelogText.map { md ->
+            md.substringAfter("## $currentVersion", "")
+                .substringBefore("\n## ")
+                .trim()
+                .ifEmpty { md.trim() }
+        }
     }
     pluginVerification {
         // 兼容性验证目标:优先用本机已安装 IDEA;无本机 IDE 的环境(如 CI)跳过 verifier
