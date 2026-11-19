@@ -74,17 +74,8 @@ tasks {
             )
         }
     }
-    publishPlugin {
-        // 发布需访问 plugins.jetbrains.com,直连受限网络会失败;
-        // 传 -PnetProxy=host:port 走本地代理,token 从 MARKETPLACE_TOKEN 环境变量读取
-        providers.gradleProperty("netProxy").orNull?.let { proxy ->
-            val (host, port) = proxy.split(":")
-            jvmArgs(
-                "-Dhttps.proxyHost=$host", "-Dhttps.proxyPort=$port",
-                "-Dhttp.proxyHost=$host", "-Dhttp.proxyPort=$port",
-            )
-        }
-    }
+    // publishPlugin 在 daemon 进程内上传,代理经 gradle 命令行 -D 传入:
+    // ./gradlew publishPlugin -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7897 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=7897
     runIde {
         // 沙箱启动后直接打开指定项目(默认测试仓库;-PrunIdeProject=<path> 覆盖)
         val projectPath = providers.gradleProperty("runIdeProject")
