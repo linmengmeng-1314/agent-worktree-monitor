@@ -74,6 +74,17 @@ tasks {
             )
         }
     }
+    publishPlugin {
+        // 发布需访问 plugins.jetbrains.com,直连受限网络会失败;
+        // 传 -PnetProxy=host:port 走本地代理,token 从 MARKETPLACE_TOKEN 环境变量读取
+        providers.gradleProperty("netProxy").orNull?.let { proxy ->
+            val (host, port) = proxy.split(":")
+            jvmArgs(
+                "-Dhttps.proxyHost=$host", "-Dhttps.proxyPort=$port",
+                "-Dhttp.proxyHost=$host", "-Dhttp.proxyPort=$port",
+            )
+        }
+    }
     runIde {
         // 沙箱启动后直接打开指定项目(默认测试仓库;-PrunIdeProject=<path> 覆盖)
         val projectPath = providers.gradleProperty("runIdeProject")
