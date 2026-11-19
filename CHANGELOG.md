@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+- Fixed: plugin icon now located at `META-INF/pluginIcon.svg` (required by the IDE; previously at the JAR root it always showed a placeholder plug)
+- Fixed: full exception details are now logged and shown when a scan fails (previously displayed as "扫描失败:null")
+- Git executor unwraps asynchronous read failures to report the real cause
+
 ## 0.2.3
 
 - Plugin icon flattened to solid colors: the IDE Plugins list failed to render the gradient version and showed a placeholder

@@ -191,8 +191,9 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
                 val result = fullScan(projectDir)
                 SwingUtilities.invokeLater { updateUi(result, projectDir, light) }
             } catch (e: Exception) {
-                thisLogger().warn("AgentWorktreeMonitor 扫描失败: ${e.message}")
-                SwingUtilities.invokeLater { statusLabel.text = "扫描失败:${e.message}" }
+                thisLogger().warn("AgentWorktreeMonitor 扫描失败", e)
+                val msg = e.message ?: e.javaClass.simpleName
+                SwingUtilities.invokeLater { statusLabel.text = "扫描失败:$msg" }
             } finally {
                 refreshing.set(false)
                 SwingUtilities.invokeLater { refreshButton.isEnabled = true }
@@ -212,7 +213,8 @@ class MonitorPanel(private val project: Project) : JBPanel<JBPanel<*>>(BorderLay
                 val base = explicitBase ?: if (wt.isMainWorktree) null else defaultBase
                 WorktreeRow(wt, scanner.scanChanges(wt, base), null)
             } catch (e: Exception) {
-                WorktreeRow(wt, null, e.message)
+                thisLogger().warn("AgentWorktreeMonitor worktree 扫描失败: ${wt.path}", e)
+                WorktreeRow(wt, null, e.message ?: e.javaClass.simpleName)
             }
         }
         val overlaps = OverlapDetector.detect(rows.mapNotNull { it.change })

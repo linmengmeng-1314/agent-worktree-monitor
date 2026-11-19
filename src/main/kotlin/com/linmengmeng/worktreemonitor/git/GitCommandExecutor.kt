@@ -52,8 +52,17 @@ class GitCommandExecutor {
             process.destroyForcibly()
             return GitCommandResult(-1, ByteArray(0), "git 命令超时(${args.joinToString(" ")})")
         }
-        val stdout = stdoutFuture.get(5, TimeUnit.SECONDS)
-        val stderr = String(stderrFuture.get(5, TimeUnit.SECONDS), StandardCharsets.UTF_8)
+        val stdout = readFuture(stdoutFuture)
+        val stderr = String(readFuture(stderrFuture), StandardCharsets.UTF_8)
         return GitCommandResult(process.exitValue(), stdout, stderr)
+    }
+
+    /** 读取输出 Future;ExecutionException/CompletionException 自身 message 为 null,须解包真实原因 */
+    private fun readFuture(future: CompletableFuture<ByteArray>): ByteArray {
+        return try {
+            future.get(5, TimeUnit.SECONDS)
+        } catch (e: java.util.concurrent.ExecutionException) {
+            throw (e.cause ?: e)
+        }
     }
 }
